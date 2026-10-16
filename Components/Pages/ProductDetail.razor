@@ -1,0 +1,73 @@
+@page "/product/{id:int}"
+@inject MidtermProject.Services.KeylabStoreService StoreService
+@inject NavigationManager Nav
+
+@if (product != null)
+{
+    <div class="max-w-7xl mx-auto px-6 py-8 space-y-12">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Image Gallery -->
+            <div>
+                <img src="@selectedImage" class="w-full h-96 object-cover rounded-2xl border border-slate-800 shadow-sm mb-4" />
+                <div class="grid grid-cols-4 gap-3">
+                    @foreach (var img in product.AdditionalImages)
+                    {
+                        <img src="@img" @onclick="() => selectedImage = img" class="h-20 w-full object-cover rounded-xl border border-slate-800 cursor-pointer hover:opacity-80" />
+                    }
+                </div>
+            </div>
+
+            <!-- Configuration Form -->
+            <div class="space-y-6">
+                <div>
+                    <h1 class="text-3xl font-black text-white">@product.Name</h1>
+                    <p class="text-sm text-amber-500 mt-1">★ @product.Rating <span class="text-slate-400">(@product.ReviewCount reviews)</span></p>
+                    <p class="text-2xl font-black text-white mt-3">$@product.Price.ToString("N2")</p>
+                    <p class="text-xs text-slate-400 mt-3 leading-relaxed">@product.Description</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-white mb-2">Switch Type</label>
+                    <div class="flex gap-2">
+                        @foreach (var sw in product.SwitchOptions)
+                        {
+                            <button @onclick="() => selectedSwitch = sw" class="px-4 py-2 border rounded-xl text-xs font-bold @(selectedSwitch == sw ? "border-indigo-500 bg-indigo-600 text-white" : "border-slate-700 text-slate-300")">
+                                @sw
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button @onclick="() => StoreService.AddToCart(product, selectedColor, selectedSwitch, quantity)" class="flex-1 bg-slate-900 border border-indigo-500 text-white font-bold py-3 rounded-xl hover:bg-slate-800">Add to Cart</button>
+                    <button @onclick="BuyNow" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-500">Buy Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+    private MidtermProject.Models.Product? product;
+    private string selectedImage = "";
+    private string selectedSwitch = "Linear";
+    private string selectedColor = "White";
+    private int quantity = 1;
+
+    private void BuyNow()
+    {
+        if (product == null) return;
+        StoreService.AddToCart(product, selectedColor, selectedSwitch, quantity);
+        Nav.NavigateTo("/checkout");
+    }
+
+    protected override void OnParametersSet()
+    {
+        product = StoreService.GetProductById(id);
+        if (product != null)
+        {
+            selectedImage = product.PrimaryImageUrl;
+        }
+    }
+}

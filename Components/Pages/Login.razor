@@ -1,0 +1,57 @@
+@page "/"
+@page "/login"
+@inject MidtermProject.Services.KeylabStoreService StoreService
+@inject NavigationManager Nav
+
+<div class="min-h-[calc(100vh-4rem)] bg-slate-950 flex items-center justify-center p-4 md:p-8">
+    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+        <h1 class="text-2xl font-black text-white text-center">Sign In</h1>
+        <p class="text-slate-400 text-xs text-center mt-1 mb-6">Welcome back to KEYLAB.</p>
+
+        <EditForm Model="model" FormName="loginForm" OnValidSubmit="HandleLogin" class="space-y-4">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-red-400 text-xs" />
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="bg-red-500/10 border border-red-500/50 text-red-400 text-xs p-3 rounded-xl font-semibold">@errorMessage</div>
+            }
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Email or Username</label>
+                <InputText @bind-Value="model.EmailOrUsername" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" placeholder="wilmark@gmail.com" />
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+                <InputText @bind-Value="model.Password" type="password" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+            </div>
+
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-600/20 text-sm transition-all mt-2">
+                Sign In
+            </button>
+        </EditForm>
+
+        <p class="text-xs text-slate-500 text-center mt-6">
+            Don't have an account? <a href="/register" class="text-indigo-400 hover:underline">Sign Up</a>
+        </p>
+    </div>
+</div>
+
+@code {
+    private MidtermProject.Models.LoginModel model = new();
+
+    [SupplyParameterFromQuery(Name = "returnUrl")] public string? ReturnUrl { get; set; }
+
+    private string errorMessage = "";
+
+    private void HandleLogin()
+    {
+        if (!StoreService.Login(model.EmailOrUsername, model.Password))
+        {
+            errorMessage = "Invalid email or password.";
+            return;
+        }
+
+        Nav.NavigateTo(!string.IsNullOrEmpty(ReturnUrl) && ReturnUrl.StartsWith("/") && !ReturnUrl.StartsWith("//") ? ReturnUrl : "/home");
+    }
+}

@@ -1,0 +1,64 @@
+@page "/home"
+@inject MidtermProject.Services.KeylabStoreService StoreService
+
+<PageTitle>KEYLAB — Minimalist Mechanical Keyboards</PageTitle>
+
+<div class="max-w-7xl mx-auto px-6 py-12 space-y-20">
+    <!-- Hero Banner -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-slate-900 rounded-3xl p-8 lg:p-12 border border-slate-800">
+        <div>
+            <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">NEW: SLATE 75</span>
+            <h1 class="text-4xl lg:text-5xl font-black text-white mt-2 leading-tight">Type quieter. Think louder.</h1>
+            <p class="text-slate-400 text-sm mt-4 max-w-md">Hand-tuned mechanical keyboards in a clean, minimal form factor designed for long typing sessions.</p>
+            <div class="mt-6 flex gap-3">
+                <a href="/shop" class="bg-indigo-600 text-white text-sm font-semibold px-6 py-3 rounded-xl hover:bg-indigo-500 transition-all shadow-md">Shop Keyboards</a>
+                <a href="/shop" class="border border-slate-700 text-slate-200 text-sm font-semibold px-6 py-3 rounded-xl hover:bg-slate-800 transition-all">Build Your Own</a>
+            </div>
+        </div>
+        <div class="overflow-hidden rounded-2xl shadow-xl border border-slate-800">
+            <img src="https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=800&auto=format&fit=crop" alt="Slate 75 Keyboard" class="w-full h-80 object-cover" />
+        </div>
+    </section>
+
+    <!-- Shop By Category -->
+    <section>
+        <h2 class="text-2xl font-black text-white mb-6">Shop by Category</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <a href="/shop?cat=Keyboards" class="group bg-slate-900 p-4 rounded-2xl border border-slate-800 hover:border-indigo-500 transition-all shadow-sm">
+                <img src="https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500&auto=format&fit=crop" class="w-full h-40 object-cover rounded-xl group-hover:scale-[1.02] transition-transform" />
+                <h3 class="font-bold text-white mt-3 text-center">Keyboards</h3>
+            </a>
+            <a href="/shop?cat=Switches" class="group bg-slate-900 p-4 rounded-2xl border border-slate-800 hover:border-indigo-500 transition-all shadow-sm">
+                <img src="https://images.unsplash.com/photo-1541140532154-b024d705b909?w=500&auto=format&fit=crop" class="w-full h-40 object-cover rounded-xl group-hover:scale-[1.02] transition-transform" />
+                <h3 class="font-bold text-white mt-3 text-center">Switches</h3>
+            </a>
+            <a href="/shop?cat=Keycaps" class="group bg-slate-900 p-4 rounded-2xl border border-slate-800 hover:border-indigo-500 transition-all shadow-sm">
+                <img src="https://images.unsplash.com/photo-1595225476474-87563907a212?w=500&auto=format&fit=crop" class="w-full h-40 object-cover rounded-xl group-hover:scale-[1.02] transition-transform" />
+                <h3 class="font-bold text-white mt-3 text-center">Keycaps</h3>
+            </a>
+        </div>
+    </section>
+
+    <!-- Trending Products Scrollable Row -->
+    <section>
+        <h2 class="text-2xl font-black text-white mb-6">Trending Products</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            @foreach (var p in StoreService.GetProducts().Take(4))
+            {
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between shadow-sm">
+                    <div>
+                        <a href="/product/@p.Id">
+                            <img src="@p.PrimaryImageUrl" class="w-full h-44 object-cover rounded-xl mb-3" />
+                        </a>
+                        <h3 class="font-bold text-white text-sm">@p.Name</h3>
+                        <p class="text-xs text-amber-500 mt-1">★ @p.Rating <span class="text-slate-400">(@p.ReviewCount)</span></p>
+                    </div>
+                    <div class="flex items-center justify-between mt-4">
+                        <span class="font-black text-white">$@p.Price.ToString("N2")</span>
+                        <button @onclick="() => StoreService.AddToCart(p)" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 py-2 rounded-lg">Add to Cart</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+</div>

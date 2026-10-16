@@ -1,0 +1,80 @@
+@page "/shop"
+@inject MidtermProject.Services.KeylabStoreService StoreService
+
+<div class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex flex-col md:flex-row gap-8">
+        <!-- Dynamic Sidebar Filters -->
+        <aside class="w-full md:w-56 space-y-6 flex-shrink-0">
+            <div>
+                <h3 class="font-bold text-white text-sm mb-3">Category</h3>
+                <div class="space-y-1.5 text-xs text-slate-400">
+                    <button @onclick='() => Cat("")' class="block hover:text-white @(string.IsNullOrEmpty(selectedCategory) ? "font-bold text-white" : "")">All Categories</button>
+                    @foreach (var c in Categories)
+                    {
+                        <button @onclick="() => Cat(c)" class="block hover:text-white @(selectedCategory == c ? "font-bold text-white" : "")">@c</button>
+                    }
+                </div>
+            </div>
+
+            <div>
+                <h3 class="font-bold text-white text-sm mb-3">Layout</h3>
+                <div class="space-y-1 text-xs text-slate-400">
+                    @foreach (var l in new[] { "60%", "65%", "75%", "TKL", "Full" })
+                    {
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" @onchange="() => ToggleLayout(l)" checked="@(selectedLayout == l)" class="rounded bg-slate-950 border-slate-700 text-indigo-600" />
+                            <span>@l</span>
+                        </label>
+                    }
+                </div>
+            </div>
+        </aside>
+
+        <!-- Product Grid -->
+        <main class="flex-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach (var p in FilteredProducts.ToList())
+                {
+                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-sm flex flex-col justify-between">
+                        <div>
+                            @if (p.IsOnSale)
+                            {
+                                <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Sale</span>
+                            }
+                            <a href="/product/@p.Id">
+                                <img src="@p.PrimaryImageUrl" class="w-full h-48 object-cover rounded-xl my-2" />
+                            </a>
+                            <h3 class="font-bold text-white text-base">@p.Name</h3>
+                            <p class="text-xs text-amber-500 my-1">★ @p.Rating <span class="text-slate-400">(@p.ReviewCount)</span></p>
+                        </div>
+                        <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-800">
+                            <span class="font-black text-white text-lg">$@p.Price.ToString("N2")</span>
+                            <button @onclick="() => StoreService.AddToCart(p)" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-xl">Add to Cart</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </main>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "cat")] public string? Cat0 { get; set; }
+
+    private string selectedCategory = "";
+    private string selectedLayout = "";
+
+    private IEnumerable<string> Categories =>
+        StoreService.GetProducts().Select(p => p.Category).Distinct().OrderBy(c => c);
+
+    protected override void OnParametersSet() => selectedCategory = Cat0 ?? "";
+
+    private void Cat(string c) => selectedCategory = c;
+
+    private void ToggleLayout(string l) => selectedLayout = selectedLayout == l ? "" : l;
+
+    private IEnumerable<MidtermProject.Models.Product> FilteredProducts =>
+        StoreService.GetProducts()
+            .Where(p => string.IsNullOrEmpty(selectedCategory) || p.Category == selectedCategory)
+            .Where(p => string.IsNullOrEmpty(selectedLayout) || p.Layout == selectedLayout);
+}

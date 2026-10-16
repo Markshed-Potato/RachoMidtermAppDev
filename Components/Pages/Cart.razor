@@ -1,0 +1,48 @@
+@page "/cart"
+@implements IDisposable
+@inject MidtermProject.Services.KeylabStoreService StoreService
+
+<PageTitle>Cart — KEYLAB</PageTitle>
+
+<div class="max-w-4xl mx-auto px-6 py-12">
+    <h1 class="text-3xl font-black text-white mb-6">Your Cart</h1>
+
+    @if (!StoreService.Cart.Any())
+    {
+        <p class="text-slate-500 text-sm">Your cart is empty. <a href="/shop" class="text-indigo-600 hover:underline">Browse products</a></p>
+    }
+    else
+    {
+        <div class="space-y-4">
+            @foreach (var item in StoreService.Cart.ToList())
+            {
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center gap-4">
+                    <img src="@item.Product.PrimaryImageUrl" class="w-20 h-20 object-cover rounded-xl" />
+                    <div class="flex-1">
+                        <h3 class="font-bold text-white text-sm">@item.Product.Name</h3>
+                        <p class="text-xs text-slate-500">@item.SelectedColor · @item.SelectedSwitch</p>
+                        <p class="text-xs font-bold text-white mt-1">$@item.Product.Price.ToString("N2")</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button @onclick="() => StoreService.ChangeQuantity(item, -1)" class="w-7 h-7 border border-slate-700 rounded-lg text-slate-300">−</button>
+                        <span class="text-sm font-bold w-6 text-center">@item.Quantity</span>
+                        <button @onclick="() => StoreService.ChangeQuantity(item, 1)" class="w-7 h-7 border border-slate-700 rounded-lg text-slate-300">+</button>
+                    </div>
+                    <span class="font-black text-white w-20 text-right">$@item.Subtotal.ToString("N2")</span>
+                    <button @onclick="() => StoreService.RemoveFromCart(item)" class="text-xs text-red-500 hover:underline">Remove</button>
+                </div>
+            }
+        </div>
+        <div class="flex justify-between items-center mt-8 border-t border-slate-800 pt-4">
+            <span class="text-lg font-bold text-white">Total</span>
+            <span class="text-2xl font-black text-white">$@StoreService.GetCartTotal().ToString("N2")</span>
+        </div>
+        <a href="/checkout" class="block text-center w-full mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-600/20 text-sm transition-all">Proceed to Checkout</a>
+    }
+</div>
+
+@code {
+    protected override void OnInitialized() => StoreService.OnChange += Changed;
+    private void Changed() => InvokeAsync(StateHasChanged);
+    public void Dispose() => StoreService.OnChange -= Changed;
+}
