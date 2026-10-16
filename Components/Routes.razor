@@ -1,0 +1,14 @@
+<Router AppAssembly="typeof(Program).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(Layout.MainLayout)">
+            <div class="max-w-7xl mx-auto px-6 py-24 text-center">
+                <h1 class="text-3xl font-black text-white">Page not found</h1>
+                <a href="/home" class="text-indigo-400 hover:underline text-sm mt-4 inline-block">Back to home</a>
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>

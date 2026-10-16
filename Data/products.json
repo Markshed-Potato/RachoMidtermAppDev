@@ -1,0 +1,175 @@
+[
+  {
+    "id": 1,
+    "name": "Void 65 Keyboard",
+    "category": "Keyboards",
+    "price": 149.0,
+    "rating": 4.9,
+    "reviewCount": 128,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&auto=format&fit=crop",
+    "additionalImages": [
+      "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1595225476474-87563907a212?w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1541140532154-b024d705b909?w=600&auto=format&fit=crop"
+    ],
+    "description": "A gasket-mounted 65% board with CNC aluminum case, hot-swap sockets and pre-lubed linear switches.",
+    "layout": "65%",
+    "color": "White",
+    "isOnSale": false,
+    "badgeText": null
+  },
+  {
+    "id": 2,
+    "name": "Slate 75 Wireless",
+    "category": "Keyboards",
+    "price": 189.0,
+    "rating": 4.8,
+    "reviewCount": 128,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=600&auto=format&fit=crop",
+    "additionalImages": [
+      "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=600&auto=format&fit=crop"
+    ],
+    "description": "Clean, low-profile mechanical keyboard with multi-device Bluetooth and 2.4Ghz connectivity.",
+    "layout": "75%",
+    "color": "Grey",
+    "isOnSale": true,
+    "badgeText": "Sale"
+  },
+  {
+    "id": 3,
+    "name": "Pebble TKL",
+    "category": "Keyboards",
+    "price": 129.0,
+    "rating": 5.0,
+    "reviewCount": 128,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1595225476474-87563907a212?w=600&auto=format&fit=crop",
+    "additionalImages": [
+      "https://images.unsplash.com/photo-1595225476474-87563907a212?w=600&auto=format&fit=crop"
+    ],
+    "description": "Tenkeyless mechanical board built for focus work and quiet tactile feedback.",
+    "layout": "TKL",
+    "color": "Black",
+    "isOnSale": false,
+    "badgeText": null
+  },
+  {
+    "id": 4,
+    "name": "Aurora 60 Kit",
+    "category": "Keyboards",
+    "price": 99.0,
+    "rating": 4.7,
+    "reviewCount": 128,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1541140532154-b024d705b909?w=600&auto=format&fit=crop",
+    "additionalImages": [
+      "https://images.unsplash.com/photo-1541140532154-b024d705b909?w=600&auto=format&fit=crop"
+    ],
+    "description": "Custom DIY kit for enthusiasts looking to build their own compact 60% setup.",
+    "layout": "60%",
+    "color": "White",
+    "isOnSale": false,
+    "badgeText": null
+  },
+  {
+    "id": 5,
+    "name": "Monolith 96",
+    "category": "Keyboards",
+    "price": 219.0,
+    "rating": 4.9,
+    "reviewCount": 120,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&auto=format&fit=crop",
+    "additionalImages": [
+      "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&auto=format&fit=crop"
+    ],
+    "description": "Full-size functional layout with integrated volume knob and solid aluminum plate.",
+    "layout": "Full",
+    "color": "White",
+    "isOnSale": true,
+    "badgeText": "Sale"
+  },
+  {
+    "id": 6,
+    "name": "Drift 65 Low-Profile",
+    "category": "Keyboards",
+    "price": 159.0,
+    "rating": 4.8,
+    "reviewCount": 128,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=600&auto=format&fit=crop",
+    "additionalImages": [
+      "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=600&auto=format&fit=crop"
+    ],
+    "description": "Ultra-slim ergonomic keycaps designed for mobile typists and creators.",
+    "layout": "65%",
+    "color": "Black",
+    "isOnSale": false,
+    "badgeText": null
+  },
+  {
+    "id": 7,
+    "name": "Cherry Linear Switch Set",
+    "category": "Switches",
+    "price": 39.0,
+    "rating": 4.8,
+    "reviewCount": 64,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1541140532154-b024d705b909?w=600&auto=format&fit=crop",
+    "additionalImages": [
+      "https://images.unsplash.com/photo-1541140532154-b024d705b909?w=600&auto=format&fit=crop"
+    ],
+    "description": "Smooth factory-lubed linear switches, 70 pack.",
+    "layout": "\u2014",
+    "color": "Black",
+    "isOnSale": false,
+    "badgeText": null
+  },
+  {
+    "id": 8,
+    "name": "Tactile Brown Switch Set",
+    "category": "Switches",
+    "price": 35.0,
+    "rating": 4.6,
+    "reviewCount": 64,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&auto=format&fit=crop",
+    "additionalImages": [
+      "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&auto=format&fit=crop"
+    ],
+    "description": "Satisfying tactile bump for everyday typing, 70 pack.",
+    "layout": "\u2014",
+    "color": "Black",
+    "isOnSale": false,
+    "badgeText": null
+  },
+  {
+    "id": 9,
+    "name": "PBT Dye-Sub Keycap Set",
+    "category": "Keycaps",
+    "price": 59.0,
+    "rating": 4.9,
+    "reviewCount": 64,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1595225476474-87563907a212?w=600&auto=format&fit=crop",
+    "additionalImages": [
+      "https://images.unsplash.com/photo-1595225476474-87563907a212?w=600&auto=format&fit=crop"
+    ],
+    "description": "Thick PBT keycaps, Cherry profile, 140 keys.",
+    "layout": "\u2014",
+    "color": "White",
+    "isOnSale": false,
+    "badgeText": null
+  },
+  {
+    "id": 10,
+    "name": "Coiled USB-C Cable",
+    "category": "Accessories",
+    "price": 25.0,
+    "rating": 4.7,
+    "reviewCount": 64,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=600&auto=format&fit=crop",
+    "additionalImages": [
+      "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=600&auto=format&fit=crop"
+    ],
+    "description": "Handmade aviator coiled cable.",
+    "layout": "\u2014",
+    "color": "Black",
+    "isOnSale": false,
+    "badgeText": null
+  }
+]
