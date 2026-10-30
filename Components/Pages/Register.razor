@@ -1,93 +1,88 @@
 @page "/register"
-@inject MidtermProject.Services.KeylabStoreService StoreService
+@inject MidtermProject.Services.KeylabStoreService Store
 @inject NavigationManager Nav
 
-<div class="min-h-[calc(100vh-4rem)] bg-slate-950 flex items-center justify-center p-4 md:p-8">
-    <div class="max-w-4xl w-full bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
-        
-        <!-- Visual Hero Panel -->
-        <div class="relative bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-950 p-8 flex flex-col justify-between hidden md:flex">
-            <div>
-                <span class="text-xs font-bold tracking-widest text-indigo-400 uppercase">KEYLAB Membership</span>
-                <h2 class="text-3xl font-extrabold text-white mt-2">Elevate Your Typing Experience.</h2>
-                <p class="text-slate-400 text-sm mt-3 leading-relaxed">
-                    Join thousands of mechanical keyboard enthusiasts building custom setups.
-                </p>
+<PageTitle>Create Account — KEYLAB</PageTitle>
+
+<div class="min-h-[calc(100vh-10rem)] flex items-center justify-center px-4">
+    <div class="glass-card max-w-4xl w-full overflow-hidden grid md:grid-cols-2 shadow-glow-violet animate-fade-up">
+        <div class="relative hidden md:flex flex-col justify-between p-8 bg-gradient-to-br from-neon-violet/25 via-ink-900 to-neon-cyan/10 overflow-hidden">
+            <div class="absolute inset-0 grid-bg"></div>
+            <div class="relative">
+                <span class="chip-neon font-mono tracking-widest">KEYLAB MEMBERSHIP</span>
+                <h2 class="text-3xl font-black mt-4 leading-tight">Elevate your <span class="text-gradient">typing</span>.</h2>
+                <p class="text-slate-400 text-sm mt-3">Join enthusiasts building custom setups. Save carts, track orders, get early access to drops.</p>
+                <div class="flex gap-2 mt-6">
+                    @foreach (var k in new[] { "K", "E", "Y" }) { <span class="keycap">@k</span> }
+                </div>
             </div>
-            <div class="bg-slate-900/60 backdrop-blur-md p-4 rounded-xl border border-slate-800">
-                <p class="text-xs text-slate-300 italic">
-                    "The build quality of the Void 65 changed how I feel about typing every day."
-                </p>
-                <span class="text-[10px] text-indigo-400 font-bold mt-2 block">— Alex R., Senior Software Engineer</span>
+            <div class="relative glass rounded-xl p-4">
+                <p class="text-xs text-slate-300 italic">“The build quality of the Void 65 changed how I feel about typing every day.”</p>
+                <span class="text-[10px] text-neon-cyan font-bold mt-2 block">— Alex R., Software Engineer</span>
             </div>
         </div>
 
-        <!-- Registration Form Panel -->
         <div class="p-8 flex flex-col justify-center">
-            <h1 class="text-2xl font-black text-white text-center">Create Account</h1>
+            <h1 class="text-2xl font-black text-center">Create account</h1>
             <p class="text-slate-400 text-xs text-center mt-1 mb-6">Join KEYLAB in under a minute.</p>
 
-            @if (!string.IsNullOrEmpty(errorMessage))
+            @if (!string.IsNullOrEmpty(_error))
             {
-                <div class="bg-red-500/10 border border-red-500/50 text-red-400 text-xs p-3 rounded-xl mb-4 font-semibold">
-                    @errorMessage
-                </div>
+                <div class="bg-red-500/10 border border-red-500/40 text-red-300 text-xs p-3 rounded-xl mb-4 font-semibold">@_error</div>
             }
 
-            <EditForm Model="model" FormName="registerForm" OnValidSubmit="HandleRegister" class="space-y-3">
+            <EditForm Model="_model" FormName="registerForm" OnValidSubmit="HandleRegister" class="space-y-5">
                 <DataAnnotationsValidator />
-                <ValidationSummary class="text-red-400 text-xs" />
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
-                    <InputText @bind-Value="model.FullName" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" placeholder="Wilmark Racho" />
+
+                <div class="float-field">
+                    <InputText @bind-Value="_model.FullName" class="input peer" placeholder=" " autocomplete="name" />
+                    <label>Full name</label>
+                    <ValidationMessage For="() => _model.FullName" />
+                </div>
+                <div class="float-field">
+                    <InputText @bind-Value="_model.Email" class="input peer" placeholder=" " autocomplete="email" />
+                    <label>Email address</label>
+                    <ValidationMessage For="() => _model.Email" />
+                </div>
+                <div class="float-field">
+                    <InputText @bind-Value="_model.Password" type="@(_show ? "text" : "password")" class="input peer pr-14" placeholder=" " autocomplete="new-password" />
+                    <label>Password</label>
+                    <button type="button" @onclick="() => _show = !_show" class="absolute right-3 top-3 text-[11px] font-bold text-slate-400 hover:text-neon-cyan">@(_show ? "HIDE" : "SHOW")</button>
+                    <ValidationMessage For="() => _model.Password" />
+                </div>
+                <div class="float-field">
+                    <InputText @bind-Value="_model.ConfirmPassword" type="@(_show ? "text" : "password")" class="input peer" placeholder=" " autocomplete="new-password" />
+                    <label>Confirm password</label>
+                    <ValidationMessage For="() => _model.ConfirmPassword" />
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Email Address</label>
-                    <InputText @bind-Value="model.Email" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" placeholder="wilmark@gmail.com" />
+                    <div class="flex items-center gap-2">
+                        <InputCheckbox @bind-Value="_model.AgreeToTerms" id="agree" class="accent-cyan-400 h-4 w-4 cursor-pointer" />
+                        <label for="agree" class="text-xs text-slate-400 cursor-pointer">I agree to the <a href="#" class="text-neon-cyan hover:underline">Terms &amp; Privacy Policy</a></label>
+                    </div>
+                    <ValidationMessage For="() => _model.AgreeToTerms" />
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
-                    <InputText @bind-Value="model.Password" type="password" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Confirm Password</label>
-                    <InputText @bind-Value="model.ConfirmPassword" type="password" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
-                </div>
-
-                <div class="flex items-center gap-2 pt-1">
-                    <InputCheckbox @bind-Value="model.AgreeToTerms" id="agree" class="rounded bg-slate-950 border-slate-800 text-indigo-600 focus:ring-0 cursor-pointer" />
-                    <label for="agree" class="text-xs text-slate-400 cursor-pointer">I agree to the <a href="#" class="text-indigo-400 hover:underline">Terms & Privacy Policy</a></label>
-                </div>
-
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-600/20 text-sm transition-all mt-4">
-                    Create Account
-                </button>
+                <button type="submit" class="btn-primary w-full !py-3.5">Create Account</button>
             </EditForm>
 
-            <p class="text-xs text-slate-500 text-center mt-6">
-                Already have an account? <a href="/login" class="text-indigo-400 hover:underline">Sign In</a>
-            </p>
+            <p class="text-xs text-slate-500 text-center mt-6">Already a member? <a href="/login" class="text-neon-cyan hover:underline">Sign in</a></p>
         </div>
     </div>
 </div>
 
 @code {
-    private MidtermProject.Models.RegisterModel model = new();
-    private string errorMessage = "";
+    private readonly MidtermProject.Models.RegisterModel _model = new();
+    private string _error = "";
+    private bool _show;
 
     private void HandleRegister()
     {
-        var (ok, error) = StoreService.Register(model.FullName, model.Email, model.Password);
-        if (!ok)
-        {
-            errorMessage = error;
-            return;
-        }
+        var (ok, error) = Store.Register(_model.FullName, _model.Email, _model.Password);
+        if (!ok) { _error = error; return; }
 
-        errorMessage = "";
+        Store.ShowToast($"Welcome to KEYLAB, {Store.CurrentUser}!");
         Nav.NavigateTo("/home");
     }
 }

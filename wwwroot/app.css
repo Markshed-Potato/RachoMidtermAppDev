@@ -1,3 +1,55 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html { color-scheme: dark; scroll-behavior: smooth; }
+  body {
+    @apply bg-ink-900 text-slate-100 font-sans antialiased;
+    background-image:
+      radial-gradient(60rem 40rem at 10% -10%, rgba(167,139,250,.14), transparent 60%),
+      radial-gradient(50rem 36rem at 100% 0%, rgba(34,211,238,.10), transparent 60%);
+    background-attachment: fixed;
+  }
+  ::selection { background: rgba(34,211,238,.35); }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-thumb { @apply bg-slate-700 rounded-full; }
+}
+
+@layer components {
+  .glass { @apply bg-white/[0.04] backdrop-blur-xl border border-white/10; }
+  .glass-card { @apply glass rounded-2xl transition-all duration-300; }
+  .glass-card-hover { @apply glass-card hover:border-neon-cyan/40 hover:shadow-glow hover:-translate-y-0.5; }
+
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[.97]; }
+  .btn-primary { @apply btn text-ink-950 bg-gradient-to-r from-neon-cyan to-neon-violet hover:shadow-glow hover:brightness-110; }
+  .btn-ghost { @apply btn border border-white/15 text-slate-200 hover:bg-white/10 hover:border-neon-cyan/50; }
+  .btn-danger { @apply btn text-red-300 hover:bg-red-500/10; }
+
+  .chip { @apply inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-slate-300; }
+  .chip-neon { @apply chip border-neon-cyan/40 text-neon-cyan bg-neon-cyan/10; }
+  .option-pill { @apply rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-slate-300 transition hover:border-neon-cyan/50; }
+  .option-pill-active { @apply border-neon-cyan bg-neon-cyan/15 text-neon-cyan shadow-glow; }
+
+  .input { @apply w-full rounded-xl border border-white/10 bg-ink-950/60 px-3.5 py-3 text-sm text-white placeholder-transparent outline-none transition focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/30; }
+  .input.invalid { @apply border-red-500/70; }
+  .input.modified.valid { @apply border-emerald-500/60; }
+
+  /* Floating label field: <div class="float-field"><input class="input peer" placeholder=" "/><label>..</label></div> */
+  .float-field { @apply relative; }
+  .float-field > label { @apply pointer-events-none absolute left-3.5 top-3 origin-left text-sm text-slate-400 transition-all duration-150; }
+  .float-field > .input:focus ~ label,
+  .float-field > .input:not(:placeholder-shown) ~ label { @apply -translate-y-5 scale-75 text-neon-cyan; top: 0.2rem; background: #0f172a; padding: 0 .35rem; left: .6rem; }
+
+  .validation-message { @apply mt-1 text-xs font-medium text-red-400; }
+  .validation-errors { @apply text-xs text-red-400; }
+
+  .section-title { @apply text-2xl sm:text-3xl font-black tracking-tight; }
+  .text-gradient { @apply bg-gradient-to-r from-neon-cyan via-neon-violet to-neon-pink bg-clip-text text-transparent; }
+  .grid-bg {
+    background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+    background-size: 36px 36px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  }
+  .keycap { @apply inline-flex h-12 w-12 items-center justify-center rounded-xl border border-white/15 bg-gradient-to-b from-slate-700/80 to-slate-900 font-mono text-sm font-bold text-slate-200 shadow-[0_5px_0_0_rgba(2,6,23,.9)]; }
+}

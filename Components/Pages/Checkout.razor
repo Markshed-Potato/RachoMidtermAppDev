@@ -1,136 +1,252 @@
 @page "/checkout"
-@inject MidtermProject.Services.KeylabStoreService StoreService
+@implements IDisposable
+@inject MidtermProject.Services.KeylabStoreService Store
 @inject NavigationManager Nav
+@using MidtermProject.Models
 
 <PageTitle>Checkout — KEYLAB</PageTitle>
 
-<div class="max-w-5xl mx-auto px-6 py-12">
-    @if (order != null)
+<div class="max-w-6xl mx-auto px-4 sm:px-6">
+    @if (_order != null)
     {
-        <div class="max-w-lg mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center shadow-2xl">
-            <div class="mx-auto w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-black">✓</div>
-            <h1 class="text-2xl font-black text-white mt-4">Order placed!</h1>
-            <p class="text-slate-400 text-sm mt-1">Thanks, @order.CustomerName. Your order <span class="text-indigo-400 font-bold">@order.Id</span> is confirmed.</p>
+        <div class="max-w-lg mx-auto glass-card p-8 text-center shadow-glow animate-fade-up">
+            <div class="mx-auto h-16 w-16 rounded-full bg-gradient-to-br from-neon-cyan to-neon-violet text-ink-950 grid place-items-center text-3xl font-black">✓</div>
+            <h1 class="text-2xl font-black mt-5">Order placed!</h1>
+            <p class="text-slate-400 text-sm mt-1">Thanks, @_order.CustomerName. Order <span class="font-mono font-bold text-neon-cyan">@_order.Id</span> is confirmed.</p>
             <div class="text-left mt-6 space-y-2 text-xs text-slate-300">
-                @foreach (var i in order.Items)
+                @foreach (var i in _order.Items)
                 {
-                    <div class="flex justify-between"><span>@i.Quantity × @i.Product.Name (@i.SelectedSwitch)</span><span>$@i.Subtotal.ToString("N2")</span></div>
+                    <div class="flex justify-between"><span>@i.Quantity × @i.Product.Name <span class="text-slate-500">(@i.SelectedSwitch)</span></span><span>$@i.Subtotal.ToString("N2")</span></div>
                 }
-                <div class="flex justify-between border-t border-slate-800 pt-2 font-black text-white text-sm"><span>Total</span><span>$@order.Total.ToString("N2")</span></div>
-                <p class="text-slate-500 pt-2">Ship to: @order.Address</p>
-                <p class="text-slate-500">Payment: @order.PaymentMethod</p>
+                <div class="border-t border-white/10 pt-2 space-y-1">
+                    <div class="flex justify-between text-slate-400"><span>Subtotal</span><span>$@_order.Subtotal.ToString("N2")</span></div>
+                    @if (_order.Discount > 0) { <div class="flex justify-between text-emerald-300"><span>Discount (@_order.PromoCode)</span><span>−$@_order.Discount.ToString("N2")</span></div> }
+                    <div class="flex justify-between text-slate-400"><span>Tax</span><span>$@_order.Tax.ToString("N2")</span></div>
+                    <div class="flex justify-between text-slate-400"><span>Shipping</span><span>@(_order.Shipping == 0 ? "FREE" : "$" + _order.Shipping.ToString("N2"))</span></div>
+                    <div class="flex justify-between font-black text-white text-sm pt-1"><span>Total</span><span>$@_order.Total.ToString("N2")</span></div>
+                </div>
+                <p class="text-slate-500 pt-2">Ship to: @_order.Address</p>
+                <p class="text-slate-500">Payment: @_order.PaymentMethod</p>
             </div>
-            <a href="/shop" class="block mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-sm">Continue Shopping</a>
+            <a href="/shop" class="btn-primary w-full mt-6">Continue Shopping</a>
         </div>
     }
-    else if (!StoreService.Cart.Any())
+    else if (!Store.Cart.Any())
     {
-        <h1 class="text-3xl font-black text-white mb-4">Checkout</h1>
-        <p class="text-slate-400 text-sm">Your cart is empty. <a href="/shop" class="text-indigo-400 hover:underline">Browse products</a></p>
+        <h1 class="section-title mb-4">Checkout</h1>
+        <p class="text-slate-400 text-sm">Your cart is empty. <a href="/shop" class="text-neon-cyan hover:underline">Browse products</a></p>
     }
     else
     {
-        <h1 class="text-3xl font-black text-white mb-6">Checkout</h1>
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-            <div class="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-3xl p-6">
-                @if (!string.IsNullOrEmpty(error))
+        <h1 class="section-title mb-6">Check<span class="text-gradient">out</span></h1>
+
+        <!-- Stepper -->
+        <ol class="flex items-center gap-2 mb-8 text-xs font-bold">
+            @for (var i = 0; i < Steps.Length; i++)
+            {
+                var idx = i;
+                <li class="flex items-center gap-2">
+                    <span class="h-7 w-7 grid place-items-center rounded-full border @(_step > idx ? "bg-neon-cyan text-ink-950 border-neon-cyan" : _step == idx ? "border-neon-cyan text-neon-cyan shadow-glow" : "border-white/15 text-slate-500")">@(_step > idx ? "✓" : idx + 1)</span>
+                    <span class="@(_step >= idx ? "text-white" : "text-slate-500")">@Steps[idx]</span>
+                    @if (idx < Steps.Length - 1) { <span class="w-8 sm:w-16 h-px bg-white/15"></span> }
+                </li>
+            }
+        </ol>
+
+        <div class="grid lg:grid-cols-5 gap-8 items-start">
+            <div class="lg:col-span-3 glass-card p-6">
+                @if (!string.IsNullOrEmpty(_error))
                 {
-                    <div class="bg-red-500/10 border border-red-500/50 text-red-400 text-xs p-3 rounded-xl mb-4 font-semibold">@error</div>
+                    <div class="bg-red-500/10 border border-red-500/40 text-red-300 text-xs p-3 rounded-xl mb-4 font-semibold">@_error</div>
                 }
-                <EditForm Model="model" FormName="checkoutForm" OnValidSubmit="Pay" class="space-y-3">
+
+                <EditForm EditContext="_editContext" FormName="checkoutForm" OnValidSubmit="Pay" class="space-y-4">
                     <DataAnnotationsValidator />
-                    <ValidationSummary class="text-red-400 text-xs" />
 
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
-                        <InputText @bind-Value="model.FullName" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1">Address</label>
-                        <InputText @bind-Value="model.Address" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1">City</label>
-                        <InputText @bind-Value="model.City" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1">Payment Method</label>
-                        <InputSelect @bind-Value="model.PaymentMethod" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
-                            <option value="Card">Credit / Debit Card</option>
-                            <option value="GCash">GCash</option>
-                            <option value="Cash on Delivery">Cash on Delivery</option>
-                        </InputSelect>
-                    </div>
-
-                    @if (model.PaymentMethod == "Card")
+                    @if (_step == 0)
                     {
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 mb-1">Card Number</label>
-                            <InputText @bind-Value="model.CardNumber" placeholder="1234 5678 9012 3456" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                        <h2 class="font-black">Shipping details</h2>
+                        <div class="float-field">
+                            <InputText @bind-Value="_model.FullName" class="input peer" placeholder=" " autocomplete="name" />
+                            <label>Full name</label>
+                            <ValidationMessage For="() => _model.FullName" />
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-300 mb-1">Expiry (MM/YY)</label>
-                                <InputText @bind-Value="model.Expiry" placeholder="08/28" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                        <div class="float-field">
+                            <InputText @bind-Value="_model.Phone" class="input peer" placeholder=" " autocomplete="tel" />
+                            <label>Phone number</label>
+                            <ValidationMessage For="() => _model.Phone" />
+                        </div>
+                        <div class="float-field">
+                            <InputText @bind-Value="_model.Address" class="input peer" placeholder=" " autocomplete="street-address" />
+                            <label>Street address</label>
+                            <ValidationMessage For="() => _model.Address" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="float-field">
+                                <InputText @bind-Value="_model.City" class="input peer" placeholder=" " />
+                                <label>City</label>
+                                <ValidationMessage For="() => _model.City" />
                             </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-300 mb-1">CVV</label>
-                                <InputText @bind-Value="model.Cvv" type="password" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                            <div class="float-field">
+                                <InputText @bind-Value="_model.PostalCode" class="input peer" placeholder=" " autocomplete="postal-code" />
+                                <label>Postal code</label>
+                                <ValidationMessage For="() => _model.PostalCode" />
                             </div>
+                        </div>
+                        <button type="button" @onclick="NextFromShipping" class="btn-primary w-full !py-3.5">Continue to payment →</button>
+                    }
+                    else if (_step == 1)
+                    {
+                        <h2 class="font-black">Payment method</h2>
+                        <div class="grid grid-cols-3 gap-2">
+                            @foreach (var m in new[] { "Card", "GCash", "Cash on Delivery" })
+                            {
+                                <button type="button" @onclick="() => _model.PaymentMethod = m" class="option-pill !text-center @(_model.PaymentMethod == m ? "option-pill-active" : "")">@(m == "Card" ? "Credit / Debit" : m)</button>
+                            }
+                        </div>
+
+                        @if (_model.PaymentMethod == "Card")
+                        {
+                            <div class="float-field">
+                                <InputText @bind-Value="_model.CardNumber" class="input peer" placeholder=" " autocomplete="cc-number" />
+                                <label>Card number</label>
+                                <ValidationMessage For="() => _model.CardNumber" />
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="float-field">
+                                    <InputText @bind-Value="_model.Expiry" class="input peer" placeholder=" " autocomplete="cc-exp" />
+                                    <label>Expiry (MM/YY)</label>
+                                    <ValidationMessage For="() => _model.Expiry" />
+                                </div>
+                                <div class="float-field">
+                                    <InputText @bind-Value="_model.Cvv" type="password" class="input peer" placeholder=" " autocomplete="cc-csc" />
+                                    <label>CVV</label>
+                                    <ValidationMessage For="() => _model.Cvv" />
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-xs text-slate-400">You'll confirm payment details on delivery / in the @_model.PaymentMethod app.</p>
+                        }
+
+                        <div class="flex gap-3">
+                            <button type="button" @onclick="() => _step = 0" class="btn-ghost">← Back</button>
+                            <button type="button" @onclick="NextFromPayment" class="btn-primary flex-1 !py-3.5">Review order →</button>
                         </div>
                     }
-
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-600/20 text-sm transition-all mt-4">
-                        Pay $@StoreService.GetCartTotal().ToString("N2")
-                    </button>
+                    else
+                    {
+                        <h2 class="font-black">Review &amp; place order</h2>
+                        <div class="rounded-xl bg-white/5 border border-white/10 p-4 text-xs space-y-1 text-slate-300">
+                            <p class="font-bold text-white">@_model.FullName · @_model.Phone</p>
+                            <p>@_model.Address, @_model.City @_model.PostalCode</p>
+                            <p class="text-slate-500">Payment: @_model.PaymentMethod@(_model.PaymentMethod == "Card" ? $" •••• {LastFour}" : "")</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button type="button" @onclick="() => _step = 1" class="btn-ghost">← Back</button>
+                            <button type="submit" disabled="@_processing" class="btn-primary flex-1 !py-3.5">@(_processing ? "Processing…" : $"Pay ${Store.GrandTotal:N2}")</button>
+                        </div>
+                    }
                 </EditForm>
             </div>
 
-            <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl p-6 h-fit">
-                <h2 class="font-black text-white mb-4">Order Summary</h2>
+            <aside class="lg:col-span-2 glass-card p-6 lg:sticky lg:top-28 space-y-3">
+                <h2 class="font-black">Order Summary</h2>
                 <div class="space-y-3 text-xs text-slate-300">
-                    @foreach (var i in StoreService.Cart)
+                    @foreach (var i in Store.Cart)
                     {
-                        <div class="flex justify-between gap-2">
+                        <div class="flex justify-between gap-3">
                             <span>@i.Quantity × @i.Product.Name <span class="text-slate-500">(@i.SelectedSwitch)</span></span>
                             <span>$@i.Subtotal.ToString("N2")</span>
                         </div>
                     }
-                    <div class="flex justify-between border-t border-slate-800 pt-3 font-black text-white text-sm">
-                        <span>Total</span><span>$@StoreService.GetCartTotal().ToString("N2")</span>
-                    </div>
                 </div>
-            </div>
+                <dl class="border-t border-white/10 pt-3 space-y-1.5 text-xs">
+                    <div class="flex justify-between text-slate-400"><dt>Subtotal</dt><dd>$@Store.Subtotal.ToString("N2")</dd></div>
+                    @if (Store.Discount > 0) { <div class="flex justify-between text-emerald-300"><dt>Discount (@Store.AppliedPromo)</dt><dd>−$@Store.Discount.ToString("N2")</dd></div> }
+                    <div class="flex justify-between text-slate-400"><dt>Tax</dt><dd>$@Store.Tax.ToString("N2")</dd></div>
+                    <div class="flex justify-between text-slate-400"><dt>Shipping</dt><dd>@(Store.Shipping == 0 ? "FREE" : "$" + Store.Shipping.ToString("N2"))</dd></div>
+                    <div class="flex justify-between font-black text-white text-sm pt-2 border-t border-white/10"><dt>Total</dt><dd>$@Store.GrandTotal.ToString("N2")</dd></div>
+                </dl>
+            </aside>
         </div>
     }
 </div>
 
 @code {
-    private MidtermProject.Models.CheckoutModel model = new();
-    private MidtermProject.Models.Order? order;
-    private string error = "";
+    private static readonly string[] Steps = { "Shipping", "Payment", "Review" };
+
+    private readonly CheckoutModel _model = new();
+    private EditContext _editContext = default!;
+    private Order? _order;
+    private int _step;
+    private string _error = "";
+    private bool _processing;
+
+    private string LastFour
+    {
+        get
+        {
+            var d = new string(_model.CardNumber.Where(char.IsDigit).ToArray());
+            return d.Length >= 4 ? d[^4..] : "????";
+        }
+    }
 
     protected override void OnInitialized()
     {
-        if (!StoreService.IsLoggedIn)
+        _editContext = new EditContext(_model);
+        Store.OnChange += HandleChange;
+
+        if (!Store.IsLoggedIn)
         {
             Nav.NavigateTo("/login?returnUrl=/checkout");
             return;
         }
-        model.FullName = StoreService.CurrentUser;
+        _model.FullName = Store.CurrentUser;
     }
 
-    private void Pay()
+    private void HandleChange() => _ = InvokeAsync(StateHasChanged);
+
+    private bool Validate(params string[] fields)
     {
-        error = "";
-        if (model.PaymentMethod == "Card")
+        var valid = true;
+        foreach (var f in fields)
         {
-            var digits = new string(model.CardNumber.Where(char.IsDigit).ToArray());
-            if (digits.Length < 13 || digits.Length > 19) { error = "Enter a valid card number."; return; }
-            if (!System.Text.RegularExpressions.Regex.IsMatch(model.Expiry.Trim(), @"^(0[1-9]|1[0-2])\/\d{2}$")) { error = "Expiry must be MM/YY."; return; }
-            if (model.Cvv.Length < 3 || model.Cvv.Length > 4 || !model.Cvv.All(char.IsDigit)) { error = "Enter a valid CVV."; return; }
+            var id = _editContext.Field(f);
+            _editContext.NotifyFieldChanged(id);
+            if (_editContext.GetValidationMessages(id).Any()) valid = false;
         }
-
-        order = StoreService.PlaceOrder(model.FullName, $"{model.Address}, {model.City}", model.PaymentMethod);
+        return valid;
     }
+
+    private void NextFromShipping()
+    {
+        _error = "";
+        if (Validate(nameof(CheckoutModel.FullName), nameof(CheckoutModel.Phone), nameof(CheckoutModel.Address), nameof(CheckoutModel.City), nameof(CheckoutModel.PostalCode)))
+            _step = 1;
+    }
+
+    private void NextFromPayment()
+    {
+        _error = "";
+        // Full-model validation runs IValidatableObject (card rules apply only for "Card").
+        if (_editContext.Validate()) _step = 2;
+    }
+
+    private async Task Pay()
+    {
+        if (_processing) return;
+        _processing = true;
+        _error = "";
+        StateHasChanged();
+        await Task.Delay(700); // simulated payment gateway
+
+        if (!Store.Cart.Any()) { _error = "Your cart is empty."; _processing = false; return; }
+        _order = Store.PlaceOrder(_model.FullName, $"{_model.Address}, {_model.City} {_model.PostalCode}", _model.PaymentMethod);
+        Store.ShowToast($"Order {_order.Id} confirmed!");
+        _processing = false;
+    }
+
+    public void Dispose() => Store.OnChange -= HandleChange;
 }

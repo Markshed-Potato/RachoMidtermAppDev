@@ -1,80 +1,171 @@
 @page "/shop"
-@inject MidtermProject.Services.KeylabStoreService StoreService
+@inject MidtermProject.Services.KeylabStoreService Store
+@using MidtermProject.Models
 
-<div class="max-w-7xl mx-auto px-6 py-8">
-    <div class="flex flex-col md:flex-row gap-8">
-        <!-- Dynamic Sidebar Filters -->
-        <aside class="w-full md:w-56 space-y-6 flex-shrink-0">
-            <div>
-                <h3 class="font-bold text-white text-sm mb-3">Category</h3>
-                <div class="space-y-1.5 text-xs text-slate-400">
-                    <button @onclick='() => Cat("")' class="block hover:text-white @(string.IsNullOrEmpty(selectedCategory) ? "font-bold text-white" : "")">All Categories</button>
-                    @foreach (var c in Categories)
-                    {
-                        <button @onclick="() => Cat(c)" class="block hover:text-white @(selectedCategory == c ? "font-bold text-white" : "")">@c</button>
-                    }
-                </div>
+<PageTitle>Shop — KEYLAB</PageTitle>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-8">
+        <div>
+            <h1 class="section-title">@(string.IsNullOrEmpty(_category) ? "All Products" : _category)</h1>
+            <p class="text-xs text-slate-400 mt-1">
+                @Filtered.Count result@(Filtered.Count == 1 ? "" : "s")
+                @if (!string.IsNullOrWhiteSpace(_search)) { <span> for “<span class="text-neon-cyan">@_search</span>”</span> }
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <select @bind="_sort" class="input !py-2 !text-xs !w-auto cursor-pointer">
+                <option value="featured" class="bg-ink-900">Featured</option>
+                <option value="price-asc" class="bg-ink-900">Price: low → high</option>
+                <option value="price-desc" class="bg-ink-900">Price: high → low</option>
+                <option value="rating" class="bg-ink-900">Top rated</option>
+            </select>
+            <div class="glass rounded-xl p-1 flex">
+                <button @onclick="() => _listView = false" class="px-3 py-1.5 rounded-lg text-xs font-bold @(!_listView ? "bg-neon-cyan/20 text-neon-cyan" : "text-slate-400")" aria-label="Grid view">▦ Grid</button>
+                <button @onclick="() => _listView = true" class="px-3 py-1.5 rounded-lg text-xs font-bold @(_listView ? "bg-neon-cyan/20 text-neon-cyan" : "text-slate-400")" aria-label="List view">☰ List</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+        <aside class="glass-card p-5 w-full lg:w-64 shrink-0 h-fit space-y-6 lg:sticky lg:top-28">
+            <div class="flex items-center justify-between">
+                <h2 class="font-black text-sm">Filters</h2>
+                <button @onclick="Reset" class="text-[11px] text-neon-cyan hover:underline">Reset</button>
             </div>
 
-            <div>
-                <h3 class="font-bold text-white text-sm mb-3">Layout</h3>
-                <div class="space-y-1 text-xs text-slate-400">
-                    @foreach (var l in new[] { "60%", "65%", "75%", "TKL", "Full" })
-                    {
-                        <label class="flex items-center gap-2">
-                            <input type="checkbox" @onchange="() => ToggleLayout(l)" checked="@(selectedLayout == l)" class="rounded bg-slate-950 border-slate-700 text-indigo-600" />
-                            <span>@l</span>
-                        </label>
-                    }
-                </div>
-            </div>
+            <MidtermProject.Components.Shared.FilterGroup Title="Category">
+                <button @onclick='() => SetCategory("")' class="block text-xs hover:text-white @(_category == "" ? "text-neon-cyan font-bold" : "text-slate-400")">All</button>
+                @foreach (var c in Categories)
+                {
+                    <button @onclick="() => SetCategory(c)" class="block text-xs hover:text-white @(_category == c ? "text-neon-cyan font-bold" : "text-slate-400")">@c</button>
+                }
+            </MidtermProject.Components.Shared.FilterGroup>
+
+            <MidtermProject.Components.Shared.FilterGroup Title="Switch Type">
+                @foreach (var s in new[] { "Linear", "Tactile", "Clicky" })
+                {
+                    <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                        <input type="checkbox" checked="@_switches.Contains(s)" @onchange="() => Toggle(_switches, s)" class="accent-cyan-400" />@s
+                    </label>
+                }
+            </MidtermProject.Components.Shared.FilterGroup>
+
+            <MidtermProject.Components.Shared.FilterGroup Title="Form Factor">
+                @foreach (var l in new[] { "60%", "65%", "75%", "TKL", "Full" })
+                {
+                    <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                        <input type="checkbox" checked="@_layouts.Contains(l)" @onchange="() => Toggle(_layouts, l)" class="accent-cyan-400" />@(l == "Full" ? "Full-size" : l)
+                    </label>
+                }
+            </MidtermProject.Components.Shared.FilterGroup>
+
+            <MidtermProject.Components.Shared.FilterGroup Title="@PriceTitle">
+                <input type="range" min="0" max="@_priceCeiling" step="5" @bind="_maxPrice" @bind:event="oninput" class="w-full accent-cyan-400" />
+            </MidtermProject.Components.Shared.FilterGroup>
+
+            <label class="flex items-center justify-between text-xs font-bold cursor-pointer">
+                In stock only
+                <input type="checkbox" @bind="_inStockOnly" class="accent-cyan-400 h-4 w-4" />
+            </label>
         </aside>
 
-        <!-- Product Grid -->
-        <main class="flex-1">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                @foreach (var p in FilteredProducts.ToList())
-                {
-                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-sm flex flex-col justify-between">
-                        <div>
-                            @if (p.IsOnSale)
-                            {
-                                <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Sale</span>
-                            }
-                            <a href="/product/@p.Id">
-                                <img src="@p.PrimaryImageUrl" class="w-full h-48 object-cover rounded-xl my-2" />
-                            </a>
-                            <h3 class="font-bold text-white text-base">@p.Name</h3>
-                            <p class="text-xs text-amber-500 my-1">★ @p.Rating <span class="text-slate-400">(@p.ReviewCount)</span></p>
-                        </div>
-                        <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-800">
-                            <span class="font-black text-white text-lg">$@p.Price.ToString("N2")</span>
-                            <button @onclick="() => StoreService.AddToCart(p)" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-xl">Add to Cart</button>
-                        </div>
-                    </div>
-                }
-            </div>
-        </main>
+        <section class="flex-1">
+            @if (Filtered.Count == 0)
+            {
+                <div class="glass-card p-12 text-center">
+                    <p class="text-4xl">⌨️</p>
+                    <p class="font-bold mt-3">No products match your filters.</p>
+                    <button @onclick="Reset" class="btn-ghost mt-5">Clear filters</button>
+                </div>
+            }
+            else if (_listView)
+            {
+                <div class="space-y-4">
+                    @foreach (var p in Filtered)
+                    {
+                        <MidtermProject.Components.Shared.ProductCard @key="p.Id" Product="p" ListView="true" />
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    @foreach (var p in Filtered)
+                    {
+                        <MidtermProject.Components.Shared.ProductCard @key="p.Id" Product="p" />
+                    }
+                </div>
+            }
+        </section>
     </div>
 </div>
 
 @code {
-    [SupplyParameterFromQuery(Name = "cat")] public string? Cat0 { get; set; }
+    [SupplyParameterFromQuery(Name = "cat")] public string? CatQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "q")] public string? SearchQuery { get; set; }
 
-    private string selectedCategory = "";
-    private string selectedLayout = "";
+    private List<Product> _all = new();
+    private string _category = "";
+    private string _search = "";
+    private string _sort = "featured";
+    private bool _listView;
+    private bool _inStockOnly;
+    private decimal _maxPrice;
+    private decimal _priceCeiling = 300;
+    private readonly HashSet<string> _switches = new();
+    private readonly HashSet<string> _layouts = new();
 
-    private IEnumerable<string> Categories =>
-        StoreService.GetProducts().Select(p => p.Category).Distinct().OrderBy(c => c);
+    private string PriceTitle => $"Max price: ${_maxPrice:N0}";
 
-    protected override void OnParametersSet() => selectedCategory = Cat0 ?? "";
+    private IEnumerable<string> Categories => _all.Select(p => p.Category).Distinct().OrderBy(c => c);
 
-    private void Cat(string c) => selectedCategory = c;
+    protected override async Task OnInitializedAsync()
+    {
+        _all = await Store.GetProductsAsync();
+        _priceCeiling = Math.Ceiling(_all.Max(p => p.Price) / 10) * 10;
+        _maxPrice = _priceCeiling;
+    }
 
-    private void ToggleLayout(string l) => selectedLayout = selectedLayout == l ? "" : l;
+    protected override Task OnParametersSetAsync()
+    {
+        _category = CatQuery ?? "";
+        _search = SearchQuery ?? "";
+        return Task.CompletedTask;
+    }
 
-    private IEnumerable<MidtermProject.Models.Product> FilteredProducts =>
-        StoreService.GetProducts()
-            .Where(p => string.IsNullOrEmpty(selectedCategory) || p.Category == selectedCategory)
-            .Where(p => string.IsNullOrEmpty(selectedLayout) || p.Layout == selectedLayout);
+    private List<Product> Filtered
+    {
+        get
+        {
+            var q = _all.Where(p =>
+                (_category == "" || p.Category == _category) &&
+                (_search == "" || p.Name.Contains(_search, StringComparison.OrdinalIgnoreCase) || p.Description.Contains(_search, StringComparison.OrdinalIgnoreCase)) &&
+                (_switches.Count == 0 || p.SwitchOptions.Any(_switches.Contains)) &&
+                (_layouts.Count == 0 || _layouts.Contains(p.Layout)) &&
+                p.Price <= _maxPrice &&
+                (!_inStockOnly || p.InStock));
+
+            return (_sort switch
+            {
+                "price-asc" => q.OrderBy(p => p.Price),
+                "price-desc" => q.OrderByDescending(p => p.Price),
+                "rating" => q.OrderByDescending(p => p.Rating),
+                _ => q.OrderBy(p => p.Id)
+            }).ToList();
+        }
+    }
+
+    private void SetCategory(string c) => _category = c;
+
+    private static void Toggle(HashSet<string> set, string v)
+    {
+        if (!set.Remove(v)) set.Add(v);
+    }
+
+    private void Reset()
+    {
+        _category = ""; _search = ""; _sort = "featured"; _inStockOnly = false; _maxPrice = _priceCeiling;
+        _switches.Clear(); _layouts.Clear();
+    }
 }

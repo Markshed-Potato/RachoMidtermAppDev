@@ -1,0 +1,40 @@
+@implements IDisposable
+@inject MidtermProject.Services.KeylabStoreService Store
+
+<div class="fixed bottom-5 right-5 z-[100] flex flex-col gap-2 w-[min(22rem,calc(100vw-2.5rem))]" aria-live="polite">
+    @foreach (var t in _toasts)
+    {
+        var tone = t.Kind switch
+        {
+            MidtermProject.Services.ToastKind.Error => "border-red-500/50 text-red-200",
+            MidtermProject.Services.ToastKind.Info => "border-neon-violet/50 text-violet-200",
+            _ => "border-neon-cyan/50 text-cyan-100"
+        };
+        <div @key="t.Id" class="glass animate-toast-in rounded-xl px-4 py-3 text-sm font-semibold shadow-glow flex items-start gap-3 @tone">
+            <span class="flex-1">@t.Text</span>
+            <button @onclick="() => Dismiss(t.Id)" class="text-slate-400 hover:text-white" aria-label="Dismiss">✕</button>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly List<MidtermProject.Services.ToastMessage> _toasts = new();
+
+    protected override void OnInitialized() => Store.OnToast += HandleToast;
+
+    private void HandleToast(MidtermProject.Services.ToastMessage toast) => _ = InvokeAsync(async () =>
+    {
+        _toasts.Add(toast);
+        if (_toasts.Count > 4) _toasts.RemoveAt(0);
+        StateHasChanged();
+        await Task.Delay(3000);
+        Dismiss(toast.Id);
+    });
+
+    private void Dismiss(Guid id)
+    {
+        if (_toasts.RemoveAll(t => t.Id == id) > 0) StateHasChanged();
+    }
+
+    public void Dispose() => Store.OnToast -= HandleToast;
+}

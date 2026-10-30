@@ -16,4 +16,9 @@ public class Product
     public List<string> SwitchOptions { get; set; } = new() { "Linear", "Tactile", "Clicky" };
     public bool IsOnSale { get; set; }
     public string? BadgeText { get; set; }
+    public int Stock { get; set; } = 20;
+
+    public bool InStock => Stock > 0;
+    public bool IsKeyboard => Category == "Keyboards";
+    public bool IsLowStock => Stock is > 0 and <= 5;
 }

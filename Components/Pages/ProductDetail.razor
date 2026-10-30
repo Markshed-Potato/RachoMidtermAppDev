@@ -1,73 +1,204 @@
 @page "/product/{id:int}"
-@inject MidtermProject.Services.KeylabStoreService StoreService
+@inject MidtermProject.Services.KeylabStoreService Store
 @inject NavigationManager Nav
+@using MidtermProject.Models
 
-@if (product != null)
+@if (_loaded && _product == null)
 {
-    <div class="max-w-7xl mx-auto px-6 py-8 space-y-12">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <!-- Image Gallery -->
+    <div class="max-w-xl mx-auto px-6 py-24 text-center">
+        <h1 class="section-title">Product not found</h1>
+        <a href="/shop" class="btn-primary mt-6">Back to shop</a>
+    </div>
+}
+else if (_product != null)
+{
+    <PageTitle>@_product.Name — KEYLAB</PageTitle>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 space-y-14">
+        <nav class="text-xs text-slate-500"><a href="/shop" class="hover:text-neon-cyan">Shop</a> / <a href="/shop?cat=@_product.Category" class="hover:text-neon-cyan">@_product.Category</a> / <span class="text-slate-300">@_product.Name</span></nav>
+
+        <div class="grid lg:grid-cols-2 gap-10">
+            <!-- Gallery -->
             <div>
-                <img src="@selectedImage" class="w-full h-96 object-cover rounded-2xl border border-slate-800 shadow-sm mb-4" />
-                <div class="grid grid-cols-4 gap-3">
-                    @foreach (var img in product.AdditionalImages)
+                <div class="glass-card p-2">
+                    <img src="@_selectedImage" alt="@_product.Name" class="w-full h-[26rem] object-cover rounded-xl" />
+                </div>
+                <div class="grid grid-cols-4 gap-3 mt-3">
+                    @foreach (var img in Gallery)
                     {
-                        <img src="@img" @onclick="() => selectedImage = img" class="h-20 w-full object-cover rounded-xl border border-slate-800 cursor-pointer hover:opacity-80" />
+                        <button @onclick="() => _selectedImage = img" class="rounded-xl overflow-hidden border-2 transition @(img == _selectedImage ? "border-neon-cyan shadow-glow" : "border-white/10 opacity-70 hover:opacity-100")">
+                            <img src="@img" alt="" loading="lazy" class="h-20 w-full object-cover" />
+                        </button>
                     }
                 </div>
+
+                @if (_product.Category is "Keyboards" or "Switches")
+                {
+                    <div class="glass-card p-4 mt-5 flex items-center gap-4">
+                        <button @onclick="() => _playing = !_playing" class="btn-primary !rounded-full !h-11 !w-11 !p-0 shrink-0" aria-label="Toggle sound test">@(_playing ? "❚❚" : "▶")</button>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold">Sound test · <span class="text-neon-cyan">@_selectedSwitch</span></p>
+                            <p class="text-[11px] text-slate-500">Audio sample placeholder — wire up an &lt;audio&gt; source per switch type.</p>
+                        </div>
+                        <div class="flex items-end gap-1 h-8" aria-hidden="true">
+                            @for (var i = 0; i < 8; i++)
+                            {
+                                <span class="w-1 rounded-full bg-neon-cyan @(_playing ? "animate-eq" : "h-1")" style="@(_playing ? $"animation-delay:{i * 90}ms" : "")"></span>
+                            }
+                        </div>
+                    </div>
+                }
             </div>
 
-            <!-- Configuration Form -->
+            <!-- Config -->
             <div class="space-y-6">
                 <div>
-                    <h1 class="text-3xl font-black text-white">@product.Name</h1>
-                    <p class="text-sm text-amber-500 mt-1">★ @product.Rating <span class="text-slate-400">(@product.ReviewCount reviews)</span></p>
-                    <p class="text-2xl font-black text-white mt-3">$@product.Price.ToString("N2")</p>
-                    <p class="text-xs text-slate-400 mt-3 leading-relaxed">@product.Description</p>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        @if (_product.IsOnSale) { <span class="chip !border-red-500/50 !bg-red-500/20 !text-red-300">SALE</span> }
+                        @if (!string.IsNullOrEmpty(_product.BadgeText)) { <span class="chip-neon">@_product.BadgeText</span> }
+                    </div>
+                    <h1 class="text-4xl font-black tracking-tight">@_product.Name</h1>
+                    <p class="text-sm text-amber-400 mt-2">★ @_product.Rating.ToString("0.0") <span class="text-slate-500">(@_product.ReviewCount reviews)</span></p>
+                    <p class="text-3xl font-black mt-4 text-gradient w-fit">$@_product.Price.ToString("N2")</p>
+                    <p class="text-sm text-slate-400 mt-4 leading-relaxed">@_product.Description</p>
+                </div>
+
+                <!-- Inventory -->
+                <div class="flex items-center gap-2 text-xs font-bold">
+                    @if (!_product.InStock)
+                    {
+                        <span class="h-2 w-2 rounded-full bg-red-500"></span><span class="text-red-400">Out of stock</span>
+                    }
+                    else if (_product.IsLowStock)
+                    {
+                        <span class="h-2 w-2 rounded-full bg-amber-400 animate-pulse"></span><span class="text-amber-300">Only @_product.Stock left — order soon</span>
+                    }
+                    else
+                    {
+                        <span class="h-2 w-2 rounded-full bg-emerald-400"></span><span class="text-emerald-300">In stock (@_product.Stock available)</span>
+                    }
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-white mb-2">Switch Type</label>
-                    <div class="flex gap-2">
-                        @foreach (var sw in product.SwitchOptions)
+                    <p class="text-xs font-bold mb-2">@OptionLabel: <span class="text-neon-cyan">@_selectedSwitch</span></p>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach (var sw in _product.SwitchOptions)
                         {
-                            <button @onclick="() => selectedSwitch = sw" class="px-4 py-2 border rounded-xl text-xs font-bold @(selectedSwitch == sw ? "border-indigo-500 bg-indigo-600 text-white" : "border-slate-700 text-slate-300")">
-                                @sw
-                            </button>
+                            <button @onclick="() => _selectedSwitch = sw" class="option-pill @(_selectedSwitch == sw ? "option-pill-active" : "")">@sw</button>
                         }
                     </div>
                 </div>
 
-                <div class="flex gap-3 pt-4">
-                    <button @onclick="() => StoreService.AddToCart(product, selectedColor, selectedSwitch, quantity)" class="flex-1 bg-slate-900 border border-indigo-500 text-white font-bold py-3 rounded-xl hover:bg-slate-800">Add to Cart</button>
-                    <button @onclick="BuyNow" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-500">Buy Now</button>
+                @if (_product.IsKeyboard)
+                {
+                    <div>
+                        <p class="text-xs font-bold mb-2">Keycap colorway: <span class="text-neon-cyan">@_selectedColor</span></p>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach (var c in Colors)
+                            {
+                                <button @onclick="() => _selectedColor = c" class="option-pill @(_selectedColor == c ? "option-pill-active" : "")">@c</button>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="flex items-center gap-4">
+                    <div class="glass rounded-xl flex items-center">
+                        <button @onclick="() => SetQty(_quantity - 1)" class="h-11 w-11 text-lg hover:text-neon-cyan" aria-label="Decrease">−</button>
+                        <span class="w-10 text-center font-mono font-bold">@_quantity</span>
+                        <button @onclick="() => SetQty(_quantity + 1)" class="h-11 w-11 text-lg hover:text-neon-cyan" aria-label="Increase">+</button>
+                    </div>
+                    <p class="text-xs text-slate-400">Subtotal <span class="font-black text-white">$@((_product.Price * _quantity).ToString("N2"))</span></p>
+                </div>
+
+                <div class="flex gap-3">
+                    <button @onclick="AddToCart" disabled="@(!_product.InStock)" class="btn-ghost flex-1 !py-3.5">Add to Cart</button>
+                    <button @onclick="BuyNow" disabled="@(!_product.InStock)" class="btn-primary flex-1 !py-3.5">Buy Now</button>
                 </div>
             </div>
         </div>
+
+        <!-- Specs -->
+        <section class="glass-card overflow-hidden max-w-3xl">
+            <h2 class="px-6 py-4 font-black border-b border-white/10">Specifications</h2>
+            <dl class="divide-y divide-white/5">
+                @foreach (var (k, v) in Specs)
+                {
+                    <div class="grid grid-cols-3 px-6 py-3 text-sm">
+                        <dt class="text-slate-400">@k</dt>
+                        <dd class="col-span-2 font-semibold">@v</dd>
+                    </div>
+                }
+            </dl>
+        </section>
     </div>
 }
 
 @code {
-    [Parameter] public int id { get; set; }
-    private MidtermProject.Models.Product? product;
-    private string selectedImage = "";
-    private string selectedSwitch = "Linear";
-    private string selectedColor = "White";
-    private int quantity = 1;
+    [Parameter] public int Id { get; set; }
+
+    private Product? _product;
+    private bool _loaded;
+    private string _selectedImage = "";
+    private string _selectedSwitch = "";
+    private string _selectedColor = "";
+    private int _quantity = 1;
+    private bool _playing;
+
+    private static readonly string[] Colors = { "Black", "White", "Grey", "Blue" };
+
+    private string OptionLabel => _product?.Category switch
+    {
+        "Keycaps" => "Material",
+        "Accessories" => "Length",
+        _ => "Switch type"
+    };
+
+    private IEnumerable<string> Gallery => _product!.AdditionalImages.Count > 0
+        ? _product.AdditionalImages.Take(4)
+        : new[] { _product.PrimaryImageUrl };
+
+    private IEnumerable<(string, string)> Specs
+    {
+        get
+        {
+            var p = _product!;
+            yield return ("Category", p.Category);
+            if (p.IsKeyboard)
+            {
+                yield return ("Form factor", p.Layout);
+                yield return ("Case color", p.Color);
+                yield return ("Mounting", "Gasket");
+                yield return ("Hot-swap", "Yes (5-pin)");
+                yield return ("Connectivity", "USB-C · Bluetooth 5.1 · 2.4 GHz");
+            }
+            yield return ("Options", string.Join(", ", p.SwitchOptions));
+            yield return ("Availability", p.InStock ? $"{p.Stock} in stock" : "Out of stock");
+            yield return ("Rating", $"{p.Rating:0.0} / 5 ({p.ReviewCount} reviews)");
+            yield return ("Warranty", "1 year limited");
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loaded = false;
+        _product = await Store.GetProductByIdAsync(Id);
+        _loaded = true;
+        if (_product == null) return;
+
+        _selectedImage = _product.PrimaryImageUrl;
+        _selectedSwitch = _product.SwitchOptions.FirstOrDefault() ?? "Linear";
+        _selectedColor = _product.Color;
+        _quantity = 1;
+        _playing = false;
+    }
+
+    private void SetQty(int q) => _quantity = Math.Clamp(q, 1, Math.Max(1, _product?.Stock ?? 1));
+
+    private void AddToCart() => Store.AddToCart(_product!, _selectedColor, _selectedSwitch, _quantity);
 
     private void BuyNow()
     {
-        if (product == null) return;
-        StoreService.AddToCart(product, selectedColor, selectedSwitch, quantity);
-        Nav.NavigateTo("/checkout");
-    }
-
-    protected override void OnParametersSet()
-    {
-        product = StoreService.GetProductById(id);
-        if (product != null)
-        {
-            selectedImage = product.PrimaryImageUrl;
-        }
+        if (Store.AddToCart(_product!, _selectedColor, _selectedSwitch, _quantity))
+            Nav.NavigateTo("/checkout");
     }
 }

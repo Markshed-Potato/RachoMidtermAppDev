@@ -17,7 +17,8 @@
     "layout": "65%",
     "color": "White",
     "isOnSale": false,
-    "badgeText": null
+    "badgeText": null,
+    "stock": 24
   },
   {
     "id": 2,
@@ -34,7 +35,8 @@
     "layout": "75%",
     "color": "Grey",
     "isOnSale": true,
-    "badgeText": "Sale"
+    "badgeText": "Sale",
+    "stock": 8
   },
   {
     "id": 3,
@@ -51,7 +53,8 @@
     "layout": "TKL",
     "color": "Black",
     "isOnSale": false,
-    "badgeText": null
+    "badgeText": null,
+    "stock": 15
   },
   {
     "id": 4,
@@ -68,7 +71,8 @@
     "layout": "60%",
     "color": "White",
     "isOnSale": false,
-    "badgeText": null
+    "badgeText": null,
+    "stock": 0
   },
   {
     "id": 5,
@@ -85,7 +89,8 @@
     "layout": "Full",
     "color": "White",
     "isOnSale": true,
-    "badgeText": "Sale"
+    "badgeText": "Sale",
+    "stock": 5
   },
   {
     "id": 6,
@@ -102,7 +107,8 @@
     "layout": "65%",
     "color": "Black",
     "isOnSale": false,
-    "badgeText": null
+    "badgeText": null,
+    "stock": 31
   },
   {
     "id": 7,
@@ -116,10 +122,14 @@
       "https://images.unsplash.com/photo-1541140532154-b024d705b909?w=600&auto=format&fit=crop"
     ],
     "description": "Smooth factory-lubed linear switches, 70 pack.",
-    "layout": "\u2014",
+    "layout": "—",
     "color": "Black",
     "isOnSale": false,
-    "badgeText": null
+    "badgeText": null,
+    "stock": 120,
+    "switchOptions": [
+      "Linear"
+    ]
   },
   {
     "id": 8,
@@ -133,10 +143,14 @@
       "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&auto=format&fit=crop"
     ],
     "description": "Satisfying tactile bump for everyday typing, 70 pack.",
-    "layout": "\u2014",
+    "layout": "—",
     "color": "Black",
     "isOnSale": false,
-    "badgeText": null
+    "badgeText": null,
+    "stock": 3,
+    "switchOptions": [
+      "Tactile"
+    ]
   },
   {
     "id": 9,
@@ -150,10 +164,15 @@
       "https://images.unsplash.com/photo-1595225476474-87563907a212?w=600&auto=format&fit=crop"
     ],
     "description": "Thick PBT keycaps, Cherry profile, 140 keys.",
-    "layout": "\u2014",
+    "layout": "—",
     "color": "White",
     "isOnSale": false,
-    "badgeText": null
+    "badgeText": null,
+    "stock": 18,
+    "switchOptions": [
+      "ABS Dye-Sub",
+      "PBT Dye-Sub"
+    ]
   },
   {
     "id": 10,
@@ -167,9 +186,14 @@
       "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=600&auto=format&fit=crop"
     ],
     "description": "Handmade aviator coiled cable.",
-    "layout": "\u2014",
+    "layout": "—",
     "color": "Black",
     "isOnSale": false,
-    "badgeText": null
+    "badgeText": null,
+    "stock": 60,
+    "switchOptions": [
+      "1.5m",
+      "2m"
+    ]
   }
 ]
