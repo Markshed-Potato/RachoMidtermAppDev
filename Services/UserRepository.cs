@@ -1,23 +1,17 @@
 using System.Security.Cryptography;
-using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using MidtermProject.Data;
 using MidtermProject.Models;
 
 namespace MidtermProject.Services;
 
 public class UserRepository
 {
-    private readonly string _path;
-    private readonly object _lock = new();
-    private readonly List<User> _users;
+    private readonly IDbContextFactory<AppDbContext> _factory;
 
-    public UserRepository(IWebHostEnvironment env)
+    public UserRepository(IDbContextFactory<AppDbContext> factory)
     {
-        var dir = Path.Combine(env.ContentRootPath, "Data");
-        Directory.CreateDirectory(dir);
-        _path = Path.Combine(dir, "users.json");
-        _users = File.Exists(_path)
-            ? JsonSerializer.Deserialize<List<User>>(File.ReadAllText(_path)) ?? new()
-            : new();
+        _factory = factory;
     }
 
     private static string Hash(string password, string salt) =>
@@ -26,28 +20,46 @@ public class UserRepository
 
     public (bool ok, string error) Register(string fullName, string email, string password)
     {
-        lock (_lock)
+        try
         {
             email = email.Trim();
-            if (_users.Any(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase)))
+            using var db = _factory.CreateDbContext();
+            if (db.Users.Any(u => u.Email.ToLower() == email.ToLower()))
                 return (false, "An account with that email already exists.");
 
             var salt = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16));
-            _users.Add(new User { FullName = fullName.Trim(), Email = email, Salt = salt, PasswordHash = Hash(password, salt) });
-            File.WriteAllText(_path, JsonSerializer.Serialize(_users, new JsonSerializerOptions { WriteIndented = true }));
+            db.Users.Add(new User
+            {
+                FullName = fullName.Trim(),
+                Email = email,
+                Salt = salt,
+                PasswordHash = Hash(password, salt)
+            });
+            db.SaveChanges();
             return (true, "");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Register error: {ex.Message}");
+            return (false, "Unable to register at this time. Please try again.");
         }
     }
 
     public User? Validate(string email, string password)
     {
-        lock (_lock)
+        try
         {
-            var user = _users.FirstOrDefault(u => u.Email.Equals(email.Trim(), StringComparison.OrdinalIgnoreCase));
+            using var db = _factory.CreateDbContext();
+            var user = db.Users.FirstOrDefault(u => u.Email.ToLower() == email.Trim().ToLower());
             if (user == null) return null;
             var attempt = Hash(password, user.Salt);
             return CryptographicOperations.FixedTimeEquals(
                 Convert.FromBase64String(attempt), Convert.FromBase64String(user.PasswordHash)) ? user : null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Validate error: {ex.Message}");
+            return null;
         }
     }
 }

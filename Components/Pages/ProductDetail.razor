@@ -2,48 +2,111 @@
 @inject MidtermProject.Services.KeylabStoreService StoreService
 @inject NavigationManager Nav
 
+<PageTitle>@(product != null ? $"{product.Name} — KEYLAB" : "Product — KEYLAB")</PageTitle>
+
 @if (product != null)
 {
     <div class="max-w-7xl mx-auto px-6 py-8 space-y-12">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <nav class="flex items-center gap-2 text-xs text-slate-400">
+            <a href="/shop" class="hover:text-white">Shop</a>
+            <span>/</span>
+            <a href="/shop?cat=@product.Category" class="hover:text-white">@product.Category</a>
+            <span>/</span>
+            <span class="text-white font-medium">@product.Name</span>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             <!-- Image Gallery -->
             <div>
-                <img src="@selectedImage" class="w-full h-96 object-cover rounded-2xl border border-slate-800 shadow-sm mb-4" />
-                <div class="grid grid-cols-4 gap-3">
-                    @foreach (var img in product.AdditionalImages)
-                    {
-                        <img src="@img" @onclick="() => selectedImage = img" class="h-20 w-full object-cover rounded-xl border border-slate-800 cursor-pointer hover:opacity-80" />
-                    }
+                <div class="overflow-hidden rounded-2xl border border-slate-800 shadow-xl bg-slate-950 mb-4">
+                    <img src="@selectedImage" alt="@product.Name" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&auto=format&fit=crop';" class="w-full h-96 object-cover" />
                 </div>
-            </div>
-
-            <!-- Configuration Form -->
-            <div class="space-y-6">
-                <div>
-                    <h1 class="text-3xl font-black text-white">@product.Name</h1>
-                    <p class="text-sm text-amber-500 mt-1">★ @product.Rating <span class="text-slate-400">(@product.ReviewCount reviews)</span></p>
-                    <p class="text-2xl font-black text-white mt-3">$@product.Price.ToString("N2")</p>
-                    <p class="text-xs text-slate-400 mt-3 leading-relaxed">@product.Description</p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-white mb-2">Switch Type</label>
-                    <div class="flex gap-2">
-                        @foreach (var sw in product.SwitchOptions)
+                @if (product.AdditionalImages != null && product.AdditionalImages.Count > 1)
+                {
+                    <div class="grid grid-cols-4 gap-3">
+                        @foreach (var img in product.AdditionalImages)
                         {
-                            <button @onclick="() => selectedSwitch = sw" class="px-4 py-2 border rounded-xl text-xs font-bold @(selectedSwitch == sw ? "border-indigo-500 bg-indigo-600 text-white" : "border-slate-700 text-slate-300")">
-                                @sw
+                            <button @onclick="() => selectedImage = img" class="h-20 w-full overflow-hidden rounded-xl border @(selectedImage == img ? "border-indigo-500 ring-2 ring-indigo-500/30" : "border-slate-800") cursor-pointer hover:opacity-90 transition-all bg-slate-950">
+                                <img src="@img" class="w-full h-full object-cover" />
                             </button>
                         }
                     </div>
+                }
+            </div>
+
+            <!-- Configuration & Buy Form -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-6">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="bg-indigo-600/20 text-indigo-400 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">@product.Category</span>
+                        @if (product.IsOnSale)
+                        {
+                            <span class="bg-red-500/20 text-red-400 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Sale</span>
+                        }
+                    </div>
+                    <h1 class="text-3xl font-black text-white">@product.Name</h1>
+                    <div class="flex items-center gap-2 mt-2">
+                        <span class="text-sm text-amber-500 font-bold">★ @product.Rating.ToString("F1")</span>
+                        <span class="text-xs text-slate-400">(@product.ReviewCount customer reviews)</span>
+                    </div>
+                    <p class="text-3xl font-black text-white mt-4">$@product.Price.ToString("N2")</p>
+                    <p class="text-sm text-slate-300 mt-4 leading-relaxed border-t border-slate-800/80 pt-4">@product.Description</p>
                 </div>
 
-                <div class="flex gap-3 pt-4">
-                    <button @onclick="() => StoreService.AddToCart(product, selectedColor, selectedSwitch, quantity)" class="flex-1 bg-slate-900 border border-indigo-500 text-white font-bold py-3 rounded-xl hover:bg-slate-800">Add to Cart</button>
-                    <button @onclick="BuyNow" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-500">Buy Now</button>
+                @if (product.Category == "Keyboards" && product.SwitchOptions != null && product.SwitchOptions.Any())
+                {
+                    <div class="border-t border-slate-800/80 pt-4">
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Switch Option</label>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach (var sw in product.SwitchOptions)
+                            {
+                                <button type="button" @onclick="() => selectedSwitch = sw" class="px-4 py-2 border rounded-xl text-xs font-bold transition-all cursor-pointer @(selectedSwitch == sw ? "border-indigo-500 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" : "border-slate-800 bg-slate-950 text-slate-300 hover:border-slate-700")">
+                                    @sw
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Quantity -->
+                <div class="border-t border-slate-800/80 pt-4">
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Quantity</label>
+                    <div class="flex items-center gap-3">
+                        <button type="button" @onclick="() => { if (quantity > 1) quantity--; }" class="w-9 h-9 border border-slate-700 rounded-xl text-slate-200 hover:bg-slate-800 font-bold flex items-center justify-center cursor-pointer">−</button>
+                        <span class="text-sm font-bold text-white w-8 text-center">@quantity</span>
+                        <button type="button" @onclick="() => quantity++" class="w-9 h-9 border border-slate-700 rounded-xl text-slate-200 hover:bg-slate-800 font-bold flex items-center justify-center cursor-pointer">+</button>
+                    </div>
+                </div>
+
+                @if (addedNotice)
+                {
+                    <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs p-3 rounded-xl flex items-center justify-between">
+                        <span>✓ Added @quantity item(s) to your cart!</span>
+                        <a href="/cart" class="font-bold underline ml-2">View Cart</a>
+                    </div>
+                }
+
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button type="button" @onclick="AddToCart" class="flex-1 bg-slate-950 border border-indigo-500 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-all cursor-pointer">
+                        Add to Cart
+                    </button>
+                    <button type="button" @onclick="BuyNow" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-600/25 cursor-pointer">
+                        Buy Now
+                    </button>
                 </div>
             </div>
         </div>
+    </div>
+}
+else
+{
+    <div class="max-w-xl mx-auto px-6 py-24 text-center">
+        <div class="text-5xl mb-4">🔍</div>
+        <h1 class="text-2xl font-black text-white">Product Not Found</h1>
+        <p class="text-slate-400 text-sm mt-2">The product you are trying to view does not exist or is no longer in stock.</p>
+        <a href="/shop" class="inline-block mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/20">
+            Browse All Products
+        </a>
     </div>
 }
 
@@ -52,15 +115,9 @@
     private MidtermProject.Models.Product? product;
     private string selectedImage = "";
     private string selectedSwitch = "Linear";
-    private string selectedColor = "White";
+    private string selectedColor = "Black";
     private int quantity = 1;
-
-    private void BuyNow()
-    {
-        if (product == null) return;
-        StoreService.AddToCart(product, selectedColor, selectedSwitch, quantity);
-        Nav.NavigateTo("/checkout");
-    }
+    private bool addedNotice = false;
 
     protected override void OnParametersSet()
     {
@@ -68,6 +125,23 @@
         if (product != null)
         {
             selectedImage = product.PrimaryImageUrl;
+            selectedColor = product.Color;
+            selectedSwitch = product.SwitchOptions?.FirstOrDefault() ?? "Standard";
+            addedNotice = false;
         }
+    }
+
+    private void AddToCart()
+    {
+        if (product == null) return;
+        StoreService.AddToCart(product, selectedColor, selectedSwitch, quantity);
+        addedNotice = true;
+    }
+
+    private void BuyNow()
+    {
+        if (product == null) return;
+        StoreService.AddToCart(product, selectedColor, selectedSwitch, quantity);
+        Nav.NavigateTo("/checkout");
     }
 }

@@ -1,20 +1,27 @@
-using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using MidtermProject.Data;
 using MidtermProject.Models;
 
 namespace MidtermProject.Services;
 
 public class ProductRepository
 {
-    private readonly List<Product> _products;
+    private readonly IDbContextFactory<AppDbContext> _factory;
 
-    public ProductRepository(IWebHostEnvironment env)
+    public ProductRepository(IDbContextFactory<AppDbContext> factory)
     {
-        var path = Path.Combine(env.ContentRootPath, "Data", "products.json");
-        var json = File.ReadAllText(path);
-        _products = JsonSerializer.Deserialize<List<Product>>(json,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+        _factory = factory;
     }
 
-    public List<Product> GetAll() => _products;
-    public Product? GetById(int id) => _products.FirstOrDefault(p => p.Id == id);
+    public List<Product> GetAll()
+    {
+        using var db = _factory.CreateDbContext();
+        return db.Products.AsNoTracking().ToList();
+    }
+
+    public Product? GetById(int id)
+    {
+        using var db = _factory.CreateDbContext();
+        return db.Products.AsNoTracking().FirstOrDefault(p => p.Id == id);
+    }
 }

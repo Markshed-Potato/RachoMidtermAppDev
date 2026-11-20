@@ -17,7 +17,7 @@
             @foreach (var item in StoreService.Cart.ToList())
             {
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center gap-4">
-                    <img src="@item.Product.PrimaryImageUrl" class="w-20 h-20 object-cover rounded-xl" />
+                    <img src="@item.Product.PrimaryImageUrl" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&auto=format&fit=crop';" alt="@item.Product.Name" class="w-20 h-20 object-cover rounded-xl" />
                     <div class="flex-1">
                         <h3 class="font-bold text-white text-sm">@item.Product.Name</h3>
                         <p class="text-xs text-slate-500">@item.SelectedColor · @item.SelectedSwitch</p>

@@ -1,18 +1,25 @@
+using Microsoft.EntityFrameworkCore;
+using MidtermProject.Data;
 using MidtermProject.Models;
 
 namespace MidtermProject.Services;
 
-/// <summary>Per-session (per-circuit) state: cart + logged-in user. Data comes from the repositories.</summary>
+/// <summary>Per-session (per-circuit) state: cart + logged-in user. Data comes from Supabase via DbContext.</summary>
 public class KeylabStoreService
 {
     private readonly ProductRepository _products;
     private readonly UserRepository _users;
+    private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly List<CartItem> _cart = new();
 
-    public KeylabStoreService(ProductRepository products, UserRepository users)
+    public KeylabStoreService(
+        ProductRepository products,
+        UserRepository users,
+        IDbContextFactory<AppDbContext> dbFactory)
     {
         _products = products;
         _users = users;
+        _dbFactory = dbFactory;
     }
 
     public event Action? OnChange;
@@ -75,13 +82,18 @@ public class KeylabStoreService
         var order = new Order
         {
             Id = "KL-" + DateTime.Now.ToString("yyMMdd") + "-" + Random.Shared.Next(1000, 9999),
-            Date = DateTime.Now,
+            Date = DateTime.UtcNow,
             Items = _cart.ToList(),
             Total = GetCartTotal(),
             CustomerName = name,
             Address = address,
             PaymentMethod = paymentMethod
         };
+
+        using var db = _dbFactory.CreateDbContext();
+        db.Orders.Add(order);
+        db.SaveChanges();
+
         _cart.Clear();
         LastOrder = order;
         Notify();

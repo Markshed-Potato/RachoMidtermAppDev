@@ -8,19 +8,35 @@
     @if (order != null)
     {
         <div class="max-w-lg mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center shadow-2xl">
-            <div class="mx-auto w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-black">✓</div>
-            <h1 class="text-2xl font-black text-white mt-4">Order placed!</h1>
-            <p class="text-slate-400 text-sm mt-1">Thanks, @order.CustomerName. Your order <span class="text-indigo-400 font-bold">@order.Id</span> is confirmed.</p>
-            <div class="text-left mt-6 space-y-2 text-xs text-slate-300">
-                @foreach (var i in order.Items)
-                {
-                    <div class="flex justify-between"><span>@i.Quantity × @i.Product.Name (@i.SelectedSwitch)</span><span>$@i.Subtotal.ToString("N2")</span></div>
-                }
-                <div class="flex justify-between border-t border-slate-800 pt-2 font-black text-white text-sm"><span>Total</span><span>$@order.Total.ToString("N2")</span></div>
-                <p class="text-slate-500 pt-2">Ship to: @order.Address</p>
-                <p class="text-slate-500">Payment: @order.PaymentMethod</p>
+            <div class="mx-auto w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-3xl font-black mb-4">✓</div>
+            <h1 class="text-2xl font-black text-white">Order Confirmed!</h1>
+            <p class="text-slate-400 text-sm mt-2">Thank you, <span class="text-white font-semibold">@order.CustomerName</span>. Your order has been placed and saved to the database.</p>
+            <div class="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 mt-6 text-left space-y-2 text-xs text-slate-300">
+                <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                    <span class="text-slate-400 font-medium">Order Number</span>
+                    <span class="text-indigo-400 font-mono font-bold text-sm">@order.Id</span>
+                </div>
+                <div class="py-2 space-y-1.5">
+                    @foreach (var i in order.Items)
+                    {
+                        <div class="flex justify-between">
+                            <span>@i.Quantity × @i.Product.Name (@i.SelectedSwitch)</span>
+                            <span class="font-medium">$@i.Subtotal.ToString("N2")</span>
+                        </div>
+                    }
+                </div>
+                <div class="flex justify-between border-t border-slate-800 pt-2 font-black text-white text-sm">
+                    <span>Total Amount</span>
+                    <span class="text-emerald-400">$@order.Total.ToString("N2")</span>
+                </div>
+                <div class="pt-2 border-t border-slate-800/60 text-slate-400 space-y-0.5">
+                    <p><span class="font-semibold text-slate-300">Deliver to:</span> @order.Address</p>
+                    <p><span class="font-semibold text-slate-300">Payment:</span> @order.PaymentMethod</p>
+                </div>
             </div>
-            <a href="/shop" class="block mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-sm">Continue Shopping</a>
+            <a href="/shop" class="block mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/20">
+                Continue Shopping
+            </a>
         </div>
     }
     else if (!StoreService.Cart.Any())
@@ -37,51 +53,40 @@
                 {
                     <div class="bg-red-500/10 border border-red-500/50 text-red-400 text-xs p-3 rounded-xl mb-4 font-semibold">@error</div>
                 }
-                <EditForm Model="model" FormName="checkoutForm" OnValidSubmit="Pay" class="space-y-3">
+                <EditForm Model="model" FormName="checkoutForm" OnValidSubmit="Pay" class="space-y-4">
                     <DataAnnotationsValidator />
-                    <ValidationSummary class="text-red-400 text-xs" />
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
                         <InputText @bind-Value="model.FullName" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                        <ValidationMessage For="() => model.FullName" class="text-red-400 text-xs mt-1" />
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-300 mb-1">Address</label>
-                        <InputText @bind-Value="model.Address" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                        <InputText @bind-Value="model.Address" placeholder="Street name, Building, House #" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                        <ValidationMessage For="() => model.Address" class="text-red-400 text-xs mt-1" />
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-300 mb-1">City</label>
-                        <InputText @bind-Value="model.City" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                        <InputText @bind-Value="model.City" placeholder="City / Municipality" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+                        <ValidationMessage For="() => model.City" class="text-red-400 text-xs mt-1" />
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-300 mb-1">Payment Method</label>
-                        <InputSelect @bind-Value="model.PaymentMethod" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
-                            <option value="Card">Credit / Debit Card</option>
-                            <option value="GCash">GCash</option>
-                            <option value="Cash on Delivery">Cash on Delivery</option>
-                        </InputSelect>
+                        <div class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 flex items-center justify-between text-sm text-white">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xl">💵</span>
+                                <div>
+                                    <div class="font-bold text-white text-sm">Cash on Delivery (COD)</div>
+                                    <div class="text-xs text-slate-400">Pay cash upon delivery of your package</div>
+                                </div>
+                            </div>
+                            <span class="text-xs bg-indigo-500/20 text-indigo-300 font-semibold px-2.5 py-1 rounded-full">Default</span>
+                        </div>
                     </div>
 
-                    @if (model.PaymentMethod == "Card")
-                    {
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 mb-1">Card Number</label>
-                            <InputText @bind-Value="model.CardNumber" placeholder="1234 5678 9012 3456" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-300 mb-1">Expiry (MM/YY)</label>
-                                <InputText @bind-Value="model.Expiry" placeholder="08/28" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-300 mb-1">CVV</label>
-                                <InputText @bind-Value="model.Cvv" type="password" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
-                            </div>
-                        </div>
-                    }
-
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-600/20 text-sm transition-all mt-4">
-                        Pay $@StoreService.GetCartTotal().ToString("N2")
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-600/25 text-sm transition-all mt-4 cursor-pointer">
+                        Confirm & Place Order · $@StoreService.GetCartTotal().ToString("N2")
                     </button>
                 </EditForm>
             </div>
@@ -93,11 +98,11 @@
                     {
                         <div class="flex justify-between gap-2">
                             <span>@i.Quantity × @i.Product.Name <span class="text-slate-500">(@i.SelectedSwitch)</span></span>
-                            <span>$@i.Subtotal.ToString("N2")</span>
+                            <span class="font-medium">$@i.Subtotal.ToString("N2")</span>
                         </div>
                     }
                     <div class="flex justify-between border-t border-slate-800 pt-3 font-black text-white text-sm">
-                        <span>Total</span><span>$@StoreService.GetCartTotal().ToString("N2")</span>
+                        <span>Total</span><span class="text-emerald-400 font-bold">$@StoreService.GetCartTotal().ToString("N2")</span>
                     </div>
                 </div>
             </div>
@@ -123,14 +128,19 @@
     private void Pay()
     {
         error = "";
-        if (model.PaymentMethod == "Card")
+        try
         {
-            var digits = new string(model.CardNumber.Where(char.IsDigit).ToArray());
-            if (digits.Length < 13 || digits.Length > 19) { error = "Enter a valid card number."; return; }
-            if (!System.Text.RegularExpressions.Regex.IsMatch(model.Expiry.Trim(), @"^(0[1-9]|1[0-2])\/\d{2}$")) { error = "Expiry must be MM/YY."; return; }
-            if (model.Cvv.Length < 3 || model.Cvv.Length > 4 || !model.Cvv.All(char.IsDigit)) { error = "Enter a valid CVV."; return; }
-        }
+            if (string.IsNullOrWhiteSpace(model.FullName)) { error = "Full name is required."; return; }
+            if (string.IsNullOrWhiteSpace(model.Address)) { error = "Address is required."; return; }
+            if (string.IsNullOrWhiteSpace(model.City)) { error = "City is required."; return; }
 
-        order = StoreService.PlaceOrder(model.FullName, $"{model.Address}, {model.City}", model.PaymentMethod);
+            order = StoreService.PlaceOrder(model.FullName, $"{model.Address}, {model.City}", model.PaymentMethod);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            error = $"Could not complete transaction: {ex.Message}";
+            StateHasChanged();
+        }
     }
 }
